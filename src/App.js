@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { Input, Button } from "semantic-ui-react";
+
 import Weather from "./components/Weather";
+import SearchLocation from "./components/SearchLocation";
 import "./App.css";
 
 export default function App() {
@@ -14,7 +15,7 @@ export default function App() {
   }, []);
 
   const fetchWeatherByLatLan = () => {
-    navigator.geolocation.getCurrentPosition(async function (position) {
+    navigator.geolocation.getCurrentPosition(async (position) => {
       const { latitude, longitude } = position.coords;
       const URL = `${process.env.REACT_APP_API_URL}/weather/?lat=${latitude}&lon=${longitude}&units=metric&APPID=${process.env.REACT_APP_API_KEY}`;
       await fetch(URL)
@@ -63,16 +64,13 @@ export default function App() {
   return (
     <div className="App">
       <div className="search-container">
-        <h2>Weather App</h2>
-        <Input
-          className="search-input"
-          placeholder="Search weather by city name"
-          value={location}
+        {/* <h2>Weather App</h2> */}
+        <SearchLocation
+        value="WeatherApp"
+          place={location}
           onChange={handleOnChange}
+          onSearch={searchWeather}
         />
-        <Button color="teal" onClick={searchWeather}>
-          Search
-        </Button>
       </div>
       {data && !errorMsg ? (
         <Weather weatherData={data} />
