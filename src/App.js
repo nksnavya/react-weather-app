@@ -7,21 +7,25 @@ export default function App() {
   const [data, setData] = useState(null);
   const [load, setload] = useState(true);
   const [location, setLocation] = useState("");
+  const [errorMsg, setErrorMsg] = useState("");
 
   useEffect(() => {
     fetchWeatherByLatLan();
   }, []);
 
   const fetchWeatherByLatLan = () => {
-    setload(true);
     navigator.geolocation.getCurrentPosition(async function (position) {
       const { latitude, longitude } = position.coords;
       const URL = `${process.env.REACT_APP_API_URL}/weather/?lat=${latitude}&lon=${longitude}&units=metric&APPID=${process.env.REACT_APP_API_KEY}`;
       await fetch(URL)
         .then((res) => res.json())
         .then((result) => {
-          setData(result);
-          setLocation(result.name);
+          if (result.cod === "404") {
+            setErrorMsg(result.message);
+          } else {
+            setData(result);
+            setLocation(result.name);
+          }
           setload(false);
         });
     });
@@ -29,13 +33,19 @@ export default function App() {
 
   const fetchWeatherByLocation = async () => {
     setload(true);
+    setErrorMsg(""); // clear error before calling the API
     const URL = `${process.env.REACT_APP_API_URL}/weather?q=${location}&appid=${process.env.REACT_APP_API_KEY}`;
     await fetch(URL)
       .then((res) => res.json())
       .then((result) => {
-        setData(result);
+        if (result.cod === "404") {
+          setErrorMsg(result.message); // Set error mesaage
+        } else {
+          setData(result);
+        }
         setload(false);
-      });
+      })
+      .catch((error) => console.log("error", error.message));
   };
 
   const handleOnChange = (e) => {
@@ -47,7 +57,7 @@ export default function App() {
   };
 
   if (load) {
-    return <p>"loading....."</p>;
+    return <p>"Loading weather please wait...."</p>;
   }
 
   return (
@@ -64,10 +74,10 @@ export default function App() {
           Search
         </Button>
       </div>
-      {data ? (
+      {data && !errorMsg ? (
         <Weather weatherData={data} />
       ) : (
-        <div>Welcome to weather app</div>
+        <p className="error-msg">Something went wrong! {errorMsg}</p>
       )}
     </div>
   );
